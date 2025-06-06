@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>サイトポータル</title>
+  <title>lol.guns</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -72,124 +72,83 @@
     <button class="button" id="logout-button">ログアウト</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const supabaseUrl = 'https://etscisqfbpwlkjtmkuro.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0c2Npc3FmYnB3bGtqdG1rdXJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxODI0NDIsImV4cCI6MjA2NDc1ODQ0Mn0.YePNFeFt-g27C58vbcAwMj-KPIqh2D8e7cCdtnpwXkw';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const logoutBtn = document.getElementById('logout-button');
     const message = document.getElementById('message');
     const displayUsername = document.getElementById('display-username');
 
-    function toFakeEmail(userId) {
-      return `${userId}@fake.local`;
-    }
-
-    async function fetchProfile(userId) {
-      // profilesテーブルからusernameを取得
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', userId)
-        .single();
-      if (error) {
-        console.error(error);
-        return null;
-      }
-      return data?.username ?? null;
-    }
-
-    async function createProfile(userId, username) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([{ id: userId, username }]);
-      if (error) {
-        console.error('プロフィール作成失敗', error);
-        return false;
-      }
-      return true;
-    }
-
     async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const res = await fetch('/profile');
+      const data = await res.json();
+      if (data.loggedIn) {
         document.getElementById('auth-container').style.display = 'none';
         document.getElementById('links').style.display = 'block';
-        const username = await fetchProfile(user.id);
-        displayUsername.textContent = username || 'ユーザー';
+        displayUsername.textContent = data.username || 'ユーザー';
       } else {
         document.getElementById('auth-container').style.display = 'block';
         document.getElementById('links').style.display = 'none';
-        displayUsername.textContent = '';
       }
     }
 
-    signupBtn.addEventListener('click', async () => {
+    document.getElementById('signup-btn').addEventListener('click', async () => {
+      message.style.color = 'red';
       message.textContent = '';
-      const userId = document.getElementById('userid').value.trim();
+
+      const user_id = document.getElementById('userid').value.trim();
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
 
-      if (!userId || !username || !password) {
+      if (!user_id || !username || !password) {
         message.textContent = '全ての項目を入力してください';
         return;
       }
 
-      const email = toFakeEmail(userId);
-
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        message.textContent = '登録失敗: ' + error.message;
-        return;
+      const res = await fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, username, password })
+      });
+      const result = await res.json();
+      if (result.success) {
+        message.style.color = 'green';
+        message.textContent = '登録成功！ログインしてください';
+      } else {
+        message.textContent = result.message || '登録失敗';
       }
-
-      // プロフィールを作成
-      const ok = await createProfile(data.user.id, username);
-      if (!ok) {
-        message.textContent = 'プロフィール作成に失敗しました';
-        return;
-      }
-
-      message.style.color = 'green';
-      message.textContent = '登録成功！ログインしてください';
     });
 
-    loginBtn.addEventListener('click', async () => {
+    document.getElementById('login-btn').addEventListener('click', async () => {
       message.textContent = '';
-      const userId = document.getElementById('userid').value.trim();
+      const user_id = document.getElementById('userid').value.trim();
       const password = document.getElementById('password').value;
 
-      if (!userId || !password) {
+      if (!user_id || !password) {
         message.textContent = 'ユーザーIDとパスワードを入力してください';
         return;
       }
 
-      const email = toFakeEmail(userId);
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        message.textContent = 'ログイン失敗: ' + error.message;
-        return;
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, password })
+      });
+      const result = await res.json();
+      if (result.success) {
+        message.textContent = '';
+        checkAuth();
+      } else {
+        message.textContent = result.message || 'ログイン失敗';
       }
-      message.textContent = '';
-      checkAuth();
     });
 
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
+    document.getElementById('logout-button').addEventListener('click', async () => {
+      await fetch('/logout', { method: 'POST' });
       message.style.color = 'red';
       message.textContent = 'ログアウトしました';
       checkAuth();
     });
 
+    // 初期状態確認
     checkAuth();
-
-    supabase.auth.onAuthStateChange((_event, _session) => {
-      checkAuth();
-    });
   </script>
 </body>
 </html>
