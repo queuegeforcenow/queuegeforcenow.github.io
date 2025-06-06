@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>サイトポータル</title>
   <style>
     body {
@@ -13,17 +13,8 @@
       padding: 50px;
       animation: fadeIn 1.5s ease;
     }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 1.2rem;
-      margin-bottom: 40px;
-    }
-
+    h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    p { font-size: 1.2rem; margin-bottom: 40px; }
     .button {
       display: inline-block;
       margin: 10px;
@@ -34,25 +25,171 @@
       font-size: 18px;
       border-radius: 10px;
       transition: transform 0.2s, background-color 0.3s;
+      cursor: pointer;
     }
-
     .button:hover {
       background-color: #3700b3;
       transform: scale(1.05);
     }
-
+    input {
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 250px;
+    }
+    #auth-container { margin-bottom: 30px; }
+    #logout-button { margin-top: 20px; background-color: #b00020; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <h1>ようこそ！7288のサイトポータルへ</h1>
-  <p>以下のリンクからサービスをご利用いただけます!</p>
 
-  <a href="https://queuegeforcenow.github.io/bj/" target="_blank" class="button">ブラックジャック</a>
-  <a href="https://twitter.com/" target="_blank" class="button">まだ</a>
-  <a href="https://discord.com/" target="_blank" class="button">まだ</a>
+  <div id="auth-container">
+    <p>ユーザーID、ユーザー名、パスワードを入力してください</p>
+    <input type="text" id="userid" placeholder="ユーザーID" />
+    <br />
+    <input type="text" id="username" placeholder="ユーザー名" />
+    <br />
+    <input type="password" id="password" placeholder="パスワード" />
+    <br />
+    <button class="button" id="login-btn">ログイン</button>
+    <button class="button" id="signup-btn">新規登録</button>
+    <p id="message" style="color:red;"></p>
+  </div>
+
+  <div id="links" style="display:none;">
+    <p>こんにちは、<span id="display-username"></span>さん！以下のリンクからサービスをご利用いただけます!</p>
+    <a href="https://queuegeforcenow.github.io/bj/" target="_blank" class="button">ブラックジャック</a>
+    <a href="https://twitter.com/" target="_blank" class="button">まだ</a>
+    <a href="https://discord.com/" target="_blank" class="button">まだ</a>
+    <br />
+    <button class="button" id="logout-button">ログアウト</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseUrl = 'https://your-project-ref.supabase.co';
+    const supabaseKey = 'your-anon-key';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const logoutBtn = document.getElementById('logout-button');
+    const message = document.getElementById('message');
+    const displayUsername = document.getElementById('display-username');
+
+    function toFakeEmail(userId) {
+      return `${userId}@fake.local`;
+    }
+
+    async function fetchProfile(userId) {
+      // profilesテーブルからusernameを取得
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+      if (error) {
+        console.error(error);
+        return null;
+      }
+      return data?.username ?? null;
+    }
+
+    async function createProfile(userId, username) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([{ id: userId, username }]);
+      if (error) {
+        console.error('プロフィール作成失敗', error);
+        return false;
+      }
+      return true;
+    }
+
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('links').style.display = 'block';
+        const username = await fetchProfile(user.id);
+        displayUsername.textContent = username || 'ユーザー';
+      } else {
+        document.getElementById('auth-container').style.display = 'block';
+        document.getElementById('links').style.display = 'none';
+        displayUsername.textContent = '';
+      }
+    }
+
+    signupBtn.addEventListener('click', async () => {
+      message.textContent = '';
+      const userId = document.getElementById('userid').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!userId || !username || !password) {
+        message.textContent = '全ての項目を入力してください';
+        return;
+      }
+
+      const email = toFakeEmail(userId);
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        message.textContent = '登録失敗: ' + error.message;
+        return;
+      }
+
+      // プロフィールを作成
+      const ok = await createProfile(data.user.id, username);
+      if (!ok) {
+        message.textContent = 'プロフィール作成に失敗しました';
+        return;
+      }
+
+      message.style.color = 'green';
+      message.textContent = '登録成功！ログインしてください';
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      message.textContent = '';
+      const userId = document.getElementById('userid').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!userId || !password) {
+        message.textContent = 'ユーザーIDとパスワードを入力してください';
+        return;
+      }
+
+      const email = toFakeEmail(userId);
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        message.textContent = 'ログイン失敗: ' + error.message;
+        return;
+      }
+      message.textContent = '';
+      checkAuth();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      message.style.color = 'red';
+      message.textContent = 'ログアウトしました';
+      checkAuth();
+    });
+
+    checkAuth();
+
+    supabase.auth.onAuthStateChange((_event, _session) => {
+      checkAuth();
+    });
+  </script>
 </body>
 </html>
