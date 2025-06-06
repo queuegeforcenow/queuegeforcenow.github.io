@@ -1,30 +1,58 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>サイト埋め込みビューア</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>サイトポータル</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    iframe { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 20px; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #e1bee7);
+      color: #333;
+      text-align: center;
+      padding: 50px;
+      animation: fadeIn 1.5s ease;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+    }
+
+    .button {
+      display: inline-block;
+      margin: 10px;
+      padding: 15px 30px;
+      background-color: #6200ea;
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      border-radius: 10px;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #3700b3;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <h1>サイト埋め込みビューア</h1>
-  <label for="url">埋め込みたいURLを入力：</label>
-  <input type="text" id="url" placeholder="https://example.com" size="50">
-  <button onclick="embedSite()">埋め込む</button>
+  <h1>ようこそ！7288のサイトポータルへ</h1>
+  <p>以下のリンクからサービスをご利用いただけます!</p>
 
-  <iframe id="iframe" src=""></iframe>
-
-  <script>
-    function embedSite() {
-      const url = document.getElementById("url").value;
-      if (url.startsWith("https://") || url.startsWith("http://")) {
-        document.getElementById("iframe").src = url;
-      } else {
-        alert("正しいURLを入力してください（httpまたはhttpsで始まる）");
-      }
-    }
-  </script>
+  <a href="https://queuegeforcenow.github.io/bj/" target="_blank" class="button">ブラックジャック</a>
+  <a href="https://twitter.com/" target="_blank" class="button">まだ</a>
+  <a href="https://discord.com/" target="_blank" class="button">まだ</a>
 </body>
 </html>
