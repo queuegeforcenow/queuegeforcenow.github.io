@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ブラックジャックゲーム</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>ブラックジャックゲーム</h1>
+
+  <div id="auth-section">
+    <h2>ログイン / 新規登録</h2>
+    <input type="email" id="email" placeholder="メールアドレス" />
+    <input type="password" id="password" placeholder="パスワード" />
+    <button id="login-btn">ログイン</button>
+    <button id="register-btn">新規登録</button>
+    <p id="auth-message"></p>
+  </div>
+
+  <div id="game-section" style="display:none;">
+    <p>こんにちは、<span id="user-email"></span> さん</p>
+    <p>所持金: <span id="balance">0</span> 円</p>
+    <p>累計掛け金: <span id="total-bet">0</span> 円</p>
+    <p>ランク: <span id="rank">なし</span></p>
+
+    <h3>ゲーム開始</h3>
+    <label for="bet-amount">掛け金:</label>
+    <input type="number" id="bet-amount" min="1000" step="1000" />
+    <button id="start-game-btn">開始</button>
+
+    <div id="game-result"></div>
+
+    <button id="logout-btn">ログアウト</button>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
