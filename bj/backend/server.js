@@ -6,6 +6,11 @@ const db = require('./db');
 const authRoutes = require('./auth');
 const bonusRoutes = require('./bonus');
 const rankRoutes = require('./rank');
+const path = require('path');
+
+// 既にあるapp宣言の後あたりに書く
+app.use('/bj', express.static(path.join(__dirname, 'bj/public')));
+
 
 dotenv.config();
 
