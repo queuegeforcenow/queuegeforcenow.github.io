@@ -4,6 +4,9 @@ const db = require('./db');
 const path = require('path');
 require('dotenv').config();
 
+app.use('/bj', express.static(path.join(__dirname, 'bj/public')));
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
