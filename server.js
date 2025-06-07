@@ -4,20 +4,25 @@ const db = require('./db');
 const path = require('path');
 require('dotenv').config();
 
-app.use('/bj', express.static(path.join(__dirname, 'bj/public')));
+const app = express(); // ← まずappを定義！
 
-
-const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
+
+// 通常の public ディレクトリ
+app.use(express.static(path.join(__dirname, 'public')));
+
+// /bj にアクセスしたとき bj/public をルートとして扱う
+app.use('/bj', express.static(path.join(__dirname, 'bj/public')));
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }));
 
+// ルーティング
 app.post('/signup', async (req, res) => {
   const { user_id, password, username } = req.body;
   try {
